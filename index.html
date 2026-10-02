@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>PLU Kassa</title>
+<style>
+:root{
+  --green:#00833e;--darkgreen:#006d35;--pale:#edf6d7;--panel:#f4f4f4;
+  --border:#d7d7d7;--soft:#e8e8e8;--text:#222;
+}
+*{box-sizing:border-box}
+html,body{width:100%;height:100%;margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;color:var(--text);background:#eee}
+button,input{font:inherit}
+button{cursor:pointer}
+.topbar{height:44px;background:var(--green);color:white;display:flex;align-items:center;padding:0 14px}
+.topbar .user{font-size:22px;margin-right:28px}.topbar button{color:#fff;background:none;border:0;font-size:18px;margin-right:28px}
+.header{height:100px;background:var(--pale);display:flex;align-items:center;border-bottom:1px solid #d5ddc4}
+.back{width:68px;height:68px;border:0;background:none;color:#111;font-size:54px;line-height:1}
+.heading{font-size:36px;font-weight:400}
+.header-nav{margin-left:auto;height:100%;display:flex}
+.header-nav button{width:126px;border:0;border-left:1px solid #d7dfc9;background:transparent;color:#333}
+.header-nav button .ico{display:block;font-size:31px;line-height:32px;margin-bottom:4px}
+.header-nav button.active{background:#f7f8f2;border-bottom:4px solid var(--green)}
+.screen{display:none;height:calc(100vh - 144px)}
+.screen.active{display:block}
+
+/* LOGIN */
+.login-screen{background:#f2f2f2;position:relative}
+.login-title{text-align:center;font-size:22px;padding-top:26px}
+.login-card{width:min(760px,70vw);margin:30px auto 0;background:#fff;border:1px solid #eee;box-shadow:0 1px 5px #ddd;padding:0 0 24px}
+.login-display{height:84px;border-bottom:1px solid #eee;text-align:right;padding:18px 30px;font-size:35px}
+.login-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0}
+.login-grid button{height:82px;border:0;background:#fff;font-size:25px}
+.login-grid button:hover{background:#f4f4f4}
+.login-grid .wipe{grid-column:4;grid-row:1/3;background:#ddd}
+.login-grid .ok{grid-column:4;grid-row:3/5;background:var(--green);color:#fff}
+.login-grid .zero{grid-column:1}.login-grid .double{grid-column:2}
+.login-help{position:absolute;left:50%;transform:translateX(-50%);bottom:25px;color:#666;font-size:14px}
+
+/* BON */
+.bon-layout{height:100%;display:grid;grid-template-columns:68% 32%;background:#eee}
+.bon-left{min-width:0}.notice{height:52px;margin:0 7px 7px;border:1px solid #9eb6df;background:#dce8ff;text-align:center;padding:14px;font-size:20px}
+.receipt{height:calc(100% - 160px);margin:0 7px;background:#fff;overflow:auto}
+.receipt-row{display:grid;grid-template-columns:1fr 170px;padding:17px 26px;border-bottom:1px solid #eee;font-size:19px;font-weight:bold}
+.receipt-row .price{text-align:right}.receipt-row small{display:block;color:#777;font-size:14px;font-weight:normal;margin-top:5px}
+.receipt-total{height:55px;display:flex;align-items:center;justify-content:space-between;background:#fafafa;margin:0 7px;padding:0 25px;font-size:20px}
+.quickbar{height:100px;background:#111;margin:0 7px;display:flex;color:#fff}
+.quickbar button{flex:1;background:#111;color:#fff;border:0;font-size:14px}
+.quickbar .qico{display:block;font-size:27px;margin-bottom:6px}
+.bon-right{background:#f6f6f6;border-left:1px solid #ddd;padding:10px}
+.code-label{text-align:center;font-size:18px;padding:8px}
+.code-input{width:100%;height:52px;border:1px solid #ddd;background:#fff;text-align:right;font-size:28px;padding:5px 10px}
+.numgrid{display:grid;grid-template-columns:repeat(4,1fr);margin-top:10px}
+.numgrid button{height:70px;border:1px solid #e7e7e7;background:#fff;font-size:20px}
+.numgrid .gray{background:#ddd}.numgrid .enter{grid-column:2/4;background:#ddd}
+.begin{height:70px;width:100%;margin-top:12px;border:0;background:var(--green);color:#fff;font-size:20px}
+
+/* PLU */
+.plu-screen{overflow:auto;background:#eee}
+.plu-title{font-size:34px;padding:20px 28px;background:var(--pale)}
+.categories{display:grid;grid-template-columns:repeat(4,1fr);background:#fff}
+.category{height:150px;border:1px solid #eee;background:#fff;font-size:18px}
+.category .cat-icon{font-size:47px;display:block;margin-bottom:13px}
+.products{display:flex;flex-wrap:wrap;gap:12px;padding:18px}
+.product{min-width:190px;background:#fff;border:1px solid #ccc;padding:17px;text-align:left;box-shadow:0 1px 2px #ddd}
+.product strong{font-size:16px}.product span{display:block;margin-top:12px;font-size:18px}
+.plu-hint{padding:0 20px 20px;color:#777}
+
+/* ORDERS */
+.orders{padding:28px}.orders h1{font-weight:400}.empty{background:#fff;border:1px solid #ddd;padding:35px;text-align:center}
+
+/* PAYMENT */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;justify-content:flex-end;z-index:20}
+.overlay.hidden{display:none}
+.payment{width:510px;background:#fff;margin:0 18px 18px 0;padding:22px;box-shadow:0 3px 18px #555}
+.payment h2{margin:0 0 18px;font-size:25px}
+.payment .payline{display:flex;justify-content:space-between;font-size:20px;padding:12px 0}
+.cash-buttons{display:grid;grid-template-columns:1fr 1fr;gap:8px}.cash-buttons button{height:50px;background:#fff;border:1px solid #aaa}
+.cash-input{width:100%;height:52px;margin:12px 0;text-align:right;font-size:25px}
+.pay-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}.pay-actions button{height:52px;border:0}.pay-actions .confirm{background:var(--green);color:#fff}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+  .header-nav button{width:88px}.header-nav button .ico{font-size:25px}
+  .bon-layout{grid-template-columns:1fr}.bon-right{display:none}
+  .categories{grid-template-columns:repeat(2,1fr)}
+  .login-card{width:90vw}
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <span class="user">●</span><button>⚙ Opties</button><button>⌕ PLU</button>
+</header>
+
+<header class="header">
+  <button class="back" onclick="go('bon')">←</button>
+  <div class="heading" id="heading">BON</div>
+  <nav class="header-nav">
+    <button class="active" data-go="login"><span class="ico">●</span>Aanmelden</button>
+    <button data-go="plu"><span class="ico">▦</span>Prijsopvraag</button>
+    <button data-go="plu"><span class="ico">▦</span>PLU</button>
+    <button data-go="orders"><span class="ico">▤</span>Orders</button>
+    <button data-go="bon"><span class="ico">▤</span>Bon</button>
+  </nav>
+</header>
+
+<section id="login" class="screen active login-screen">
+  <div class="login-title">Voer medewerkercode in.</div>
+  <div class="login-card">
+    <div class="login-display" id="employeeDisplay"></div>
+    <div class="login-grid">
+      <button onclick="employeeKey('7')">7</button><button onclick="employeeKey('8')">8</button><button onclick="employeeKey('9')">9</button>
+      <button class="wipe" onclick="employeeClear()">Wissen</button>
+      <button onclick="employeeKey('4')">4</button><button onclick="employeeKey('5')">5</button><button onclick="employeeKey('6')">6</button>
+      <button onclick="employeeKey('1')">1</button><button onclick="employeeKey('2')">2</button><button onclick="employeeKey('3')">3</button>
+      <button class="ok" onclick="login()">OK</button>
+      <button class="zero" onclick="employeeKey('0')">0</button><button class="double" onclick="employeeKey('00')">00</button>
+    </div>
+  </div>
+  <div class="login-help">Demo-kassa — gebruik een willekeurige code om aan te melden.</div>
+</section>
+
+<section id="bon" class="screen">
+  <div class="bon-layout">
+    <div class="bon-left">
+      <div class="notice">Scan klantenkaart voor extra voordeel.</div>
+      <div class="receipt" id="receipt"></div>
+      <div class="receipt-total"><b id="count">0 Verkocht</b><strong>€ <span id="total">0,00</span></strong></div>
+      <div class="quickbar">
+        <button><span class="qico">▶</span>Bon uit wacht</button>
+        <button><span class="qico">▣</span>Herafdruk<br>laatste bon</button>
+        <button><span class="qico">▣</span>Klantenkaart<br>vergeten</button>
+        <button><span class="qico">▤</span>Zoek klant</button>
+        <button><span class="qico">◆</span>Personeelskorting</button>
+      </div>
+    </div>
+    <aside class="bon-right">
+      <div class="code-label">Voer aantal of code in</div>
+      <input class="code-input" id="codeInput">
+      <div class="numgrid" id="numgrid"></div>
+      <button class="begin" onclick="beginPayment()">▭ Begin betaling</button>
+    </aside>
+  </div>
+</section>
+
+<section id="plu" class="screen plu-screen">
+  <div class="plu-title">PLU</div>
+  <div class="categories">
+    <button class="category" onclick="showProducts('brood')"><span class="cat-icon">🍞</span>Broodjes</button>
+    <button class="category" onclick="showProducts('fruit')"><span class="cat-icon">🍎</span>Stuks fruit</button>
+    <button class="category" onclick="showProducts('groente')"><span class="cat-icon">🥕</span>Stuks groente</button>
+    <button class="category" onclick="showProducts('fruit')"><span class="cat-icon">⚖</span>Wegen fruit</button>
+    <button class="category" onclick="showProducts('groente')"><span class="cat-icon">⚖</span>Wegen groente</button>
+    <button class="category" onclick="showProducts('bier')"><span class="cat-icon">🍺</span>Bieren</button>
+    <button class="category" onclick="showProducts('service')"><span class="cat-icon">⚙</span>Service en diensten</button>
+    <button class="category" onclick="showProducts('overig')"><span class="cat-icon">▱</span>Overige</button>
+    <button class="category" onclick="showProducts('kratten')"><span class="cat-icon">▣</span>Lege kratten</button>
+    <button class="category" onclick="showProducts('nonscan')"><span class="cat-icon">▥</span>Non-scan</button>
+  </div>
+  <div class="products" id="products"></div>
+  <div class="plu-hint">Selecteer een categorie om producten te tonen.</div>
+</section>
+
+<section id="orders" class="screen">
+  <div class="orders"><h1>ORDERS</h1><div class="empty">Geen openstaande orders.</div></div>
+</section>
+
+<div class="overlay hidden" id="paymentOverlay">
+  <div class="payment">
+    <h2>Contant betaling</h2>
+    <div class="payline"><span>Te betalen</span><b id="payTotal">€ 0,00</b></div>
+    <div class="cash-buttons">
+      <button onclick="setCash(5)">+ € 5,00</button><button onclick="setCash(10)">+ € 10,00</button>
+      <button onclick="setCash(20)">+ € 20,00</button><button onclick="setCash(50)">+ € 50,00</button>
+    </div>
+    <input class="cash-input" id="cashInput" value="0,00">
+    <div class="pay-actions"><button onclick="closePayment()">Annuleren</button><button class="confirm" onclick="finishPayment()">OK</button></div>
+  </div>
+</div>
+
+<script>
+const products=[
+  {name:'GALIA MELOEN',price:2.19,cat:'fruit'},
+  {name:'ANANAS',price:2.39,cat:'fruit'},
+  {name:'AMSTEL KRAT 24*30CL',price:17.99,deposit:3.90,cat:'bier'},
+  {name:'PAPRIKA ROOD',price:.95,cat:'groente'},
+  {name:'BROODJE HAM',price:2.50,cat:'brood'},
+  {name:'BROODJE KAAS',price:2.40,cat:'brood'},
+  {name:'BANAAN',price:.45,cat:'fruit'},
+  {name:'APPEL',price:.59,cat:'fruit'},
+  {name:'KOMKOMMER',price:1.19,cat:'groente'},
+  {name:'HEINEKEN 24*30CL',price:18.49,deposit:3.90,cat:'bier'},
+  {name:'SERVICE',price:1,cat:'service'},
+  {name:'NON-SCAN',price:0,cat:'nonscan'},
+  {name:'LEGE KRAT',price:3.90,cat:'kratten'},
+  {name:'CADEAUBON',price:10,cat:'overig'}
+];
+let cart=[],employee='';
+
+const money=n=>n.toLocaleString('nl-NL',{minimumFractionDigits:2,maximumFractionDigits:2});
+const total=()=>cart.reduce((s,p)=>s+(p.price+(p.deposit||0))*p.qty,0);
+
+function go(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.getElementById('heading').textContent={login:'AANMELDEN',bon:'BON',plu:'PLU',orders:'ORDERS'}[id];
+  document.querySelectorAll('.header-nav button').forEach(b=>b.classList.remove('active'));
+  const matching=document.querySelector(`[data-go="${id}"]`);
+  if(matching)matching.classList.add('active');
+}
+document.querySelectorAll('.header-nav button').forEach(b=>b.onclick=()=>go(b.dataset.go));
+
+function employeeKey(k){employee+=k;document.getElementById('employeeDisplay').textContent='•'.repeat(employee.length)}
+function employeeClear(){employee='';document.getElementById('employeeDisplay').textContent=''}
+function login(){if(!employee)return;go('bon')}
+
+function add(name){
+  const p=products.find(x=>x.name===name);if(!p)return;
+  const found=cart.find(x=>x.name===name);
+  if(found)found.qty++;else cart.push({...p,qty:1});
+  renderReceipt();go('bon');
+}
+function renderReceipt(){
+  document.getElementById('receipt').innerHTML=cart.map(p=>`
+    <div class="receipt-row">
+      <div>${p.qty} ${p.name}${p.deposit?'<small>statiegeld</small>':''}</div>
+      <div class="price">€ ${money((p.price+(p.deposit||0))*p.qty)}</div>
+    </div>`).join('');
+  document.getElementById('count').textContent=cart.reduce((s,p)=>s+p.qty,0)+' Verkocht';
+  document.getElementById('total').textContent=money(total());
+}
+function showProducts(cat){
+  const list=products.filter(p=>p.cat===cat);
+  document.getElementById('products').innerHTML=list.map(p=>`
+    <button class="product" onclick="add('${p.name.replaceAll("'","\\'")}')">
+      <strong>${p.name}</strong><span>€ ${money(p.price)}</span>
+      ${p.deposit?'<small>+ € '+money(p.deposit)+' statiegeld</small>':''}
+    </button>`).join('');
+}
+function key(k){
+  const input=document.getElementById('codeInput');
+  if(/^\d+$/.test(k))input.value+=k;
+  else if(k==='⌫')input.value=input.value.slice(0,-1);
+  else if(k==='Wissen')input.value='';
+}
+document.getElementById('numgrid').innerHTML=['7','8','9','⌫','4','5','6','Wissen','1','2','3','Aantal','0','Enter']
+.map(k=>`<button class="${['⌫','Wissen','Aantal'].includes(k)?'gray':''} ${k==='Enter'?'enter':''}" onclick="key('${k}')">${k}</button>`).join('');
+
+function beginPayment(){
+  if(!cart.length){alert('Voeg eerst een product toe.');return}
+  document.getElementById('payTotal').textContent='€ '+money(total());
+  document.getElementById('paymentOverlay').classList.remove('hidden');
+}
+function closePayment(){document.getElementById('paymentOverlay').classList.add('hidden')}
+function setCash(n){document.getElementById('cashInput').value=n+',00'}
+function finishPayment(){
+  const paid=parseFloat(document.getElementById('cashInput').value.replace(',','.'));
+  if(isNaN(paid)||paid<total()){alert('Het ontvangen bedrag is te laag.');return}
+  alert('Betaling geslaagd\\nWisselgeld: € '+money(paid-total()));
+  cart=[];renderReceipt();closePayment();
+}
+renderReceipt();
+</script>
+</body>
+</html>
